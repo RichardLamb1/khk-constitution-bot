@@ -1,0 +1,4 @@
+discord.py>=2.4,<3
+openai>=2,<3
+pymupdf4llm>=0.2.2,<2
+python-dotenv>=1,<2
