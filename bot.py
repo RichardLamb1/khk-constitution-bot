@@ -1,4 +1,4 @@
-"""Answer Discord slash commands using the organization's governance documents."""
+"""Answer Discord mentions using the organization's governance documents."""
 
 import asyncio
 import logging
@@ -110,33 +110,58 @@ def split_discord_message(text: str) -> Iterator[str]:
 
 class GovernanceBot(discord.Client):
     def __init__(self, azure: AzureOpenAI, deployment: str, system_prompt: str) -> None:
-        super().__init__(intents=discord.Intents(guilds=True), allowed_mentions=NO_MENTIONS)
+        super().__init__(
+            intents=discord.Intents(guilds=True, guild_messages=True), allowed_mentions=NO_MENTIONS
+        )
         self.azure = azure
         self.deployment = deployment
         self.system_prompt = system_prompt
-        self.histories: OrderedDict[tuple[int, int | None], deque[tuple[str, str]]] = OrderedDict()
-        self.conversation_locks: WeakValueDictionary[tuple[int, int | None], asyncio.Lock] = (
+        self.histories: OrderedDict[tuple[int, int], deque[tuple[str, str]]] = OrderedDict()
+        self.conversation_locks: WeakValueDictionary[tuple[int, int], asyncio.Lock] = (
             WeakValueDictionary()
         )
         self.tree = app_commands.CommandTree(self)
-        self.tree.command(name="ask", description="Ask about the Constitution or Bylaws.")(self.ask)
 
     async def setup_hook(self) -> None:
-        await self.tree.sync()
-        LOGGER.info("Synced the /ask slash command")
+        # Remove the global command registered by previous versions of this bot.
+        try:
+            for command in await self.tree.fetch_commands():
+                if (
+                    command.type == discord.AppCommandType.chat_input
+                    and command.name == "ask"
+                    and command.description == "Ask about the Constitution or Bylaws."
+                ):
+                    await command.delete()
+                    break
+        except discord.HTTPException as error:
+            LOGGER.warning("Could not remove the old /ask command (HTTP %s)", error.status)
 
-    @app_commands.guild_only()
-    @app_commands.describe(question="Your question about the organization's rules")
-    async def ask(
-        self, interaction: discord.Interaction, question: app_commands.Range[str, 1, QUESTION_LIMIT]
-    ) -> None:
-        question = question.strip()
-        if not question:
-            await interaction.response.send_message("Please enter a question.", ephemeral=True)
+    async def on_message(self, message: discord.Message) -> None:
+        if self.user is None or message.guild is None or message.author.bot or message.is_system():
+            return
+        bot_id = self.user.id
+        if not any(user.id == bot_id for user in message.mentions):
+            return
+        question, mention_count = re.subn(rf"<@!?{bot_id}>", "", message.content)
+        if not mention_count:
             return
 
-        await interaction.response.defer(thinking=True)
-        key = (interaction.user.id, interaction.channel_id)
+        question = question.strip()
+        reference = message.to_reference(fail_if_not_exists=False)
+        if not question:
+            await message.channel.send(
+                "Include a question with your mention.", reference=reference, allowed_mentions=NO_MENTIONS
+            )
+            return
+        if len(question) > QUESTION_LIMIT:
+            await message.channel.send(
+                f"Please keep your question to {QUESTION_LIMIT:,} characters.",
+                reference=reference,
+                allowed_mentions=NO_MENTIONS,
+            )
+            return
+
+        key = (message.author.id, message.channel.id)
         # Keep follow-ups in order even when the same member submits overlapping requests.
         lock = self.conversation_locks.setdefault(key, asyncio.Lock())
         async with lock:
@@ -146,9 +171,9 @@ class GovernanceBot(discord.Client):
 
             reply, remember = await self.answer(question, history)
             parts = split_discord_message(reply)
-            await interaction.edit_original_response(content=next(parts), allowed_mentions=NO_MENTIONS)
+            await message.channel.send(next(parts), reference=reference, allowed_mentions=NO_MENTIONS)
             for part in parts:
-                await interaction.followup.send(part, allowed_mentions=NO_MENTIONS)
+                await message.channel.send(part, allowed_mentions=NO_MENTIONS)
 
             if remember:
                 history.append((question, reply))
