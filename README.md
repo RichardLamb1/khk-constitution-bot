@@ -20,7 +20,7 @@ Mention the bot in a server message to ask about the Constitution or Bylaws. The
 
 5. Run `cp .env.example .env` and fill in the Discord bot token, Azure resource endpoint, API key, deployment name, and API version. Use the resource URL such as `https://your-resource-name.openai.azure.com`. Set `ORGANIZATION_NAME` to personalize the prompt.
 
-6. Run `python bot.py` and tag the bot in a server message such as `@Governance Bot Who can vote in elections?`. If you’re upgrading, startup removes the old global `/ask` command registered by this bot.
+6. Run `python bot.py` and tag the bot in a server message such as `@Governance Bot Who can vote in elections?`.
 
 ## Azure request settings
 
