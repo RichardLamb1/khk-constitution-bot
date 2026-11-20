@@ -43,7 +43,7 @@ CITATION = re.compile(
 )
 
 SYSTEM_PROMPT = """\
-You are Constitution Bot, the official governance Q&A assistant for {organization_name} on our Discord server.
+You are the official governance Q&A assistant for {organization_name} on our Discord server.
 Answer student members' questions about the Constitution and Bylaws accurately, concisely, and neutrally.
 
 ### STRICT RULES
