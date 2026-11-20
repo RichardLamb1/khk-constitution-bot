@@ -14,6 +14,11 @@ Mention the bot in a server message to ask about the Constitution or Bylaws. The
 
 2. Place `constitution.pdf` and `bylaws.pdf` next to `extract_docs.py` and run `python extract_docs.py`. Review the generated `constitution.md` and `bylaws.md` for missing text, article and section labels, and list formatting. Rerun the extractor after document changes and restart the bot to load the updated text.
 
+> [!TIP]
+> You can prompt an agent to clean up the generated markdown files for you if you don't want to do it yourself. Use a prompt like:
+> 
+> ```Clean up the markdown files constitution.md and bylaws.md. Remove remnants of page footers (such as "Page X of XX", "Constitution of [...]", or "By-Laws of [...]"). Apply consistent formatting to headings, subheadings, and lists. Rejoin text that was split across pages. Correct clear spelling errors, but leave the grammar and wording unchanged.```
+
 3. Create a Discord application and install it in your server with the `bot` scope. Give it View Channel, Send Messages, and Read Message History in the channels where it will answer. Grant Send Messages in Threads for thread replies. Leave Message Content Intent disabled. Discord still delivers the content of messages that mention the bot. [Discord bot setup](https://docs.discord.com/developers/quick-start/getting-started), [Gateway intents](https://docs.discord.com/developers/events/gateway#message-content-intent)
 
 4. Deploy `gpt-5-nano` in Azure OpenAI. If you are using Azure for Students, check that your subscription and region can deploy the model and that the deployment is eligible for your credits. [Azure model availability](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models), [Azure for Students](https://azure.microsoft.com/en-us/free/students/)
