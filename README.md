@@ -1,4 +1,4 @@
-# Student Organization Governance Bot
+# Constitution Bot - A Student Organization Governance Bot
 
 Mention the bot in a server message to ask about the Constitution or Bylaws. The bot replies in the same channel or thread with relevant article and section citations. It keeps the last five question-and-answer pairs in memory for each member in each channel or thread.
 
