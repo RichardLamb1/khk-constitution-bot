@@ -39,7 +39,7 @@ UNAVAILABLE = "The governance assistant is temporarily unavailable. Please try a
 FILTERED = "I couldn't process that question. Please try rephrasing it."
 PLAYFUL_REPLY_PREFIX = "PLAYFUL:"
 CITATION = re.compile(
-    r"\b(?:Constitution|Bylaws),\s+Article\s+\w+(?:[.-]\w+)*,\s+Section\s+\w+(?:[.-]\w+)*",
+    r"\b(?:Constitution|By-?laws),\s+Article\s+\w+(?:[.-]\w+)*,\s+Section\s+\w+(?:[.-]\w+)*",
     re.IGNORECASE,
 )
 
